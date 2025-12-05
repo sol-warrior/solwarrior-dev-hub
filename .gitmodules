@@ -1,0 +1,6 @@
+[submodule "pda"]
+	path = pda
+	url = https://github.com/sol-warrior/pda
+[submodule "rust-basics"]
+	path = rust-basics
+	url = https://github.com/sol-warrior/rust-basics
