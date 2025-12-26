@@ -18,14 +18,14 @@ struct AddError {
 }
 
 #[derive(Deserialize)]
-struct MulitplyRequest {
+struct MultiplyRequest {
     a: u32,
     b: u32,
 }
 
 #[derive(Serialize)]
 struct MultiplyError {
-    error: String,
+    error: &'static str,
 }
 
 #[derive(Serialize)]
@@ -59,14 +59,13 @@ async fn add(req_body: web::Json<Add_Request_Body>) -> impl Responder {
     HttpResponse::Ok().json(Add_Response_Body { sum: a + b })
 }
 
-#[post("/multiple")]
-async fn multiply(req: web::Json<MulitplyRequest>) -> impl Responder {
-    let a = req.a;
-    let b = req.b;
+#[post("/mulitply")]
+async fn multiply(req: web::Json<MultiplyRequest>) -> impl Responder {
+    let MultiplyRequest { a, b } = req.into_inner(); // we can destruct like this
 
     if a == 0 || b == 0 {
         return HttpResponse::BadRequest().json(MultiplyError {
-            error: "Value can't be 0".to_string(),
+            error: "value_must_not_be_zero",
         });
     }
 
