@@ -11,6 +11,12 @@ struct Add_Request_Body {
 struct Add_Response_Body {
     sum: u32,
 }
+
+#[derive(Serialize)]
+struct AddError {
+    error: String,
+}
+
 #[get("/hello/{name}")]
 async fn greet(path: web::Path<String>) -> impl Responder {
     let name = path.into_inner();
@@ -28,9 +34,15 @@ async fn add(req_body: web::Json<Add_Request_Body>) -> impl Responder {
     let a = req_body.a;
     let b = req_body.b;
 
-    let add = a + b;
-    HttpResponse::Ok().json(Add_Response_Body { sum: add })
+    if a > 1000 || b > 1000 {
+        return HttpResponse::BadRequest().json(AddError {
+            error: "too big".to_string(),
+        });
+    }
+
+    HttpResponse::Ok().json(Add_Response_Body { sum: a + b })
 }
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| App::new().service(greet).service(sum).service(add))
