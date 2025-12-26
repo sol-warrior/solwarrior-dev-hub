@@ -1,3 +1,5 @@
+use std::sync::Mutex;
+
 use actix_web::{App, HttpResponse, HttpServer, Responder, get, post, web};
 use serde::{Deserialize, Serialize};
 
@@ -33,6 +35,14 @@ struct MultiplyResponse {
     product: u32,
 }
 
+struct AppStateCounterState {
+    counter: Mutex<u32>,
+}
+
+#[derive(Serialize)]
+struct CounterResponse {
+    count: u32,
+}
 #[get("/hello/{name}")]
 async fn greet(path: web::Path<String>) -> impl Responder {
     let name = path.into_inner();
@@ -72,10 +82,27 @@ async fn multiply(req: web::Json<MultiplyRequest>) -> impl Responder {
     HttpResponse::Ok().json(MultiplyResponse { product: a * b })
 }
 
+#[get("/counter")]
+async fn counter(data: web::Data<AppStateCounterState>) -> impl Responder {
+    let mut counter = data.counter.lock().unwrap();
+
+    *counter += 1;
+
+    HttpResponse::Ok().json(CounterResponse { count: *counter })
+}
+
+// GET /counter
+// → returns { "count": N }
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let count = web::Data::new(AppStateCounterState {
+        counter: Mutex::new(0),
+    });
+    HttpServer::new(move || {
         App::new()
+            .app_data(count.clone())
+            .service(counter)
             .service(greet)
             .service(sum)
             .service(add)
