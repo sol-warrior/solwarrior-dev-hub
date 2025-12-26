@@ -17,6 +17,22 @@ struct AddError {
     error: String,
 }
 
+#[derive(Deserialize)]
+struct MulitplyRequest {
+    a: u32,
+    b: u32,
+}
+
+#[derive(Serialize)]
+struct MultiplyError {
+    error: String,
+}
+
+#[derive(Serialize)]
+struct MultiplyResponse {
+    product: u32,
+}
+
 #[get("/hello/{name}")]
 async fn greet(path: web::Path<String>) -> impl Responder {
     let name = path.into_inner();
@@ -43,12 +59,32 @@ async fn add(req_body: web::Json<Add_Request_Body>) -> impl Responder {
     HttpResponse::Ok().json(Add_Response_Body { sum: a + b })
 }
 
+#[post("/multiple")]
+async fn multiply(req: web::Json<MulitplyRequest>) -> impl Responder {
+    let a = req.a;
+    let b = req.b;
+
+    if a == 0 || b == 0 {
+        return HttpResponse::BadRequest().json(MultiplyError {
+            error: "Value can't be 0".to_string(),
+        });
+    }
+
+    HttpResponse::Ok().json(MultiplyResponse { product: a * b })
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| App::new().service(greet).service(sum).service(add))
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+    HttpServer::new(|| {
+        App::new()
+            .service(greet)
+            .service(sum)
+            .service(add)
+            .service(multiply)
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
 }
 
 // use actix_web::{App, HttpServer, Responder, get, web};
