@@ -27,6 +27,10 @@ async fn index() -> impl Responder {
     "Hello world!"
 }
 
+async fn warrior() -> impl Responder{
+    "Welcome to the warrior world!"
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
@@ -38,6 +42,7 @@ async fn main() -> std::io::Result<()> {
                 .route("/index.html", web::get().to(index))
                 .route("hi", web::get().to(hi))
                 .route("/hey", web::get().to(manual_hello)),
+                .route("/warrior", web::get().to(warrior))
         )
     })
     .bind(("127.0.0.1", 8080))?
